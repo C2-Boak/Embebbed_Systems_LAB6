@@ -4,35 +4,35 @@
 
 #include "gas_sensor.h"
 
-//=====[Declaration of private defines]========================================
 
-//=====[Declaration of private data types]=====================================
 
-//=====[Declaration and initialization of public global objects]===============
 
-DigitalIn mq2(PE_12);
+AnalogIn GasSen0127(A2);
 
-//=====[Declaration of external public global variables]=======================
 
-//=====[Declaration and initialization of public global variables]=============
+float Gas_Level            = 0.0;
 
-//=====[Declaration and initialization of private global variables]============
 
-//=====[Declarations (prototypes) of private functions]========================
 
-//=====[Implementations of public functions]===================================
+float GasSen0127V(float analogRead)
+{
+
+    return (analogRead*4800);
+}
+float GasSenRead (Gas_Level){
+    return Gas_Level;
+}
+
+
 
 void gasSensorInit()
 {
 }
 
 void gasSensorUpdate()
-{
+{Gas_Level = GasSen0127V(GasSen0127);
 }
 
-bool gasSensorRead()
-{
-    return mq2;
-}
 
-//=====[Implementations of private functions]==================================
+
+//=====[Implementations of private functions]=================================

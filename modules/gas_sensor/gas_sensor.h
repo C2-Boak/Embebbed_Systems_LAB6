@@ -7,11 +7,11 @@
 
 //=====[Declaration of public data types]======================================
 
-//=====[Declarations (prototypes) of public functions]=========================
-
+float GasSen0127V();
+float GasSenRead();
 void gasSensorInit();
-void gasSensorUpdate();
-bool gasSensorRead();
+float gasSensorUpdate();
+//bool gasSensorRead();
 
 //=====[#include guards - end]=================================================
 

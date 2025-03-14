@@ -132,13 +132,13 @@ static void userInterfaceMatrixKeypadUpdate()
 static void userInterfaceDisplayInit()
 {
     displayInit( DISPLAY_CONNECTION_I2C_PCF8574_IO_EXPANDER );
-     
+
     displayCharPositionWrite ( 0,0 );
     displayStringWrite( "Temperature:" );
 
     displayCharPositionWrite ( 0,1 );
     displayStringWrite( "Gas:" );
-    
+
     displayCharPositionWrite ( 0,2 );
     displayStringWrite( "Alarm:" );
 }
@@ -147,7 +147,7 @@ static void userInterfaceDisplayUpdate()
 {
     static int accumulatedDisplayTime = 0;
     char temperatureString[3] = "";
-    
+    char GasString[4] = "";
     if( accumulatedDisplayTime >=
         DISPLAY_REFRESH_TIME_MS ) {
 
@@ -159,16 +159,22 @@ static void userInterfaceDisplayUpdate()
         displayCharPositionWrite ( 14,0 );
         displayStringWrite( "'C" );
 
+        sprintf(GasString, "%.0f", GasSenRead());
         displayCharPositionWrite ( 4,1 );
+        displayStringWrite( temperatureString );
+        displayCharPositionWrite ( 8,1 );
+        displayStringWrite( "PPM" );
 
-        if ( gasDetectorStateRead() ) {
-            displayStringWrite( "Detected    " );
-        } else {
-            displayStringWrite( "Not Detected" );
-        }
+        //displayCharPositionWrite ( 4,1 );
+
+        //if ( gasDetectorStateRead() ) {
+        //displayStringWrite( "Detected    " );
+        //} else {
+        //displayStringWrite( "Not Detected" );
+        // }
 
         displayCharPositionWrite ( 6,2 );
-        
+
         if ( sirenStateRead() ) {
             displayStringWrite( "ON " );
         } else {
@@ -177,8 +183,8 @@ static void userInterfaceDisplayUpdate()
 
     } else {
         accumulatedDisplayTime =
-            accumulatedDisplayTime + SYSTEM_TIME_INCREMENT_MS;        
-    } 
+                accumulatedDisplayTime + SYSTEM_TIME_INCREMENT_MS;
+    }
 }
 
 static void incorrectCodeIndicatorUpdate()
