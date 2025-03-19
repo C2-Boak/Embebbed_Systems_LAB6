@@ -9,13 +9,12 @@
 //=====[Declaration of public data types]======================================
 
 #include "fire_alarm.h"
+#include "temperature_sensor.h"
 
 float GasSen0127V();
 float GasSenRead();
 bool gasDetectedRead();
-
-void gasSensorTickersISR();
-//bool gasSensorRead();
+void gasSensorReset();
 
 //=====[#include guards - end]=================================================
 

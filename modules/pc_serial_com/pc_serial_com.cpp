@@ -55,6 +55,7 @@ static void commandShowCurrentOverTemperatureDetectorState();
 static void commandEnterCodeSequence();
 static void commandEnterNewCode();
 static void commandShowCurrentTemperatureInCelsius();
+static void commandShowCurrentGasRead();
 static void commandShowCurrentTemperatureInFahrenheit();
 static void commandSetDateAndTime();
 static void commandShowDateAndTime();
@@ -88,20 +89,20 @@ void pcSerialComUpdate()
         switch ( pcSerialComMode ) {
             case PC_SERIAL_COMMANDS:
                 pcSerialComCommandUpdate( receivedChar );
-            break;
+                break;
 
             case PC_SERIAL_GET_CODE:
                 pcSerialComGetCodeUpdate( receivedChar );
-            break;
+                break;
 
             case PC_SERIAL_SAVE_NEW_CODE:
                 pcSerialComSaveNewCodeUpdate( receivedChar );
-            break;
+                break;
             default:
                 pcSerialComMode = PC_SERIAL_COMMANDS;
-            break;
+                break;
         }
-    }    
+    }
 }
 
 bool pcSerialComCodeCompleteRead()
@@ -131,11 +132,11 @@ static void pcSerialComGetCodeUpdate( char receivedChar )
     codeSequenceFromPcSerialCom[numberOfCodeChars] = receivedChar;
     pcSerialComStringWrite( "*" );
     numberOfCodeChars++;
-   if ( numberOfCodeChars >= CODE_NUMBER_OF_KEYS ) {
+    if ( numberOfCodeChars >= CODE_NUMBER_OF_KEYS ) {
         pcSerialComMode = PC_SERIAL_COMMANDS;
         codeComplete = true;
         numberOfCodeChars = 0;
-    } 
+    }
 }
 
 static void pcSerialComSaveNewCodeUpdate( char receivedChar )
@@ -150,7 +151,7 @@ static void pcSerialComSaveNewCodeUpdate( char receivedChar )
         numberOfCodeChars = 0;
         codeWrite( newCodeSequence );
         pcSerialComStringWrite( "\r\nNew code configured\r\n\r\n" );
-    } 
+    }
 }
 
 static void pcSerialComCommandUpdate( char receivedChar )
@@ -163,11 +164,12 @@ static void pcSerialComCommandUpdate( char receivedChar )
         case '5': commandEnterNewCode(); break;
         case 'c': case 'C': commandShowCurrentTemperatureInCelsius(); break;
         case 'f': case 'F': commandShowCurrentTemperatureInFahrenheit(); break;
+        case 'g': case 'G': commandShowCurrentGasRead(); break;
         case 's': case 'S': commandSetDateAndTime(); break;
         case 't': case 'T': commandShowDateAndTime(); break;
         case 'e': case 'E': commandShowStoredEvents(); break;
         default: availableCommands(); break;
-    } 
+    }
 }
 
 static void availableCommands()
@@ -179,6 +181,7 @@ static void availableCommands()
     pcSerialComStringWrite( "Press '4' to enter the code to deactivate the alarm\r\n" );
     pcSerialComStringWrite( "Press '5' to enter a new code to deactivate the alarm\r\n" );
     pcSerialComStringWrite( "Press 'f' or 'F' to get lm35 reading in Fahrenheit\r\n" );
+    pcSerialComStringWrite("Press 'g' or 'G' to get the Gas Sensor reading in PPM\r\n");
     pcSerialComStringWrite( "Press 'c' or 'C' to get lm35 reading in Celsius\r\n" );
     pcSerialComStringWrite( "Press 's' or 'S' to set the date and time\r\n" );
     pcSerialComStringWrite( "Press 't' or 'T' to get the date and time\r\n" );
@@ -197,11 +200,11 @@ static void commandShowCurrentAlarmState()
 
 static void commandShowCurrentGasDetectorState()
 {
-    if ( gasDetectorStateRead() ) {
+    if ( gasDetectedRead() ) {
         pcSerialComStringWrite( "Gas is being detected\r\n");
     } else {
         pcSerialComStringWrite( "Gas is not being detected\r\n");
-    }    
+    }
 }
 
 static void commandShowCurrentOverTemperatureDetectorState()
@@ -239,17 +242,28 @@ static void commandShowCurrentTemperatureInCelsius()
 {
     char str[100] = "";
     sprintf ( str, "Temperature: %.2f \xB0 C\r\n",
-                    temperatureSensorReadCelsius() );
-    pcSerialComStringWrite( str );  
+              temperatureSensorReadCelsius() );
+    pcSerialComStringWrite( str );
 }
 
 static void commandShowCurrentTemperatureInFahrenheit()
 {
     char str[100] = "";
     sprintf ( str, "Temperature: %.2f \xB0 C\r\n",
-                    temperatureSensorReadFahrenheit() );
-    pcSerialComStringWrite( str );  
+              temperatureSensorReadFahrenheit() );
+    pcSerialComStringWrite( str );
 }
+
+static void commandShowCurrentGasRead()
+{
+    char str[100] = "";
+
+    sprintf ( str, "Gas Quantity: %.2f  ppm\r\n",
+              GasSenRead());
+    pcSerialComStringWrite( str );
+
+}
+
 
 static void commandSetDateAndTime()
 {
@@ -259,7 +273,7 @@ static void commandSetDateAndTime()
     char hour[3] = "";
     char minute[3] = "";
     char second[3] = "";
-    
+
     pcSerialComStringWrite("\r\nType four digits for the current year (YYYY): ");
     pcSerialComStringRead( year, 4);
     pcSerialComStringWrite("\r\n");
@@ -283,11 +297,11 @@ static void commandSetDateAndTime()
     pcSerialComStringWrite("Type two digits for the current seconds (00-59): ");
     pcSerialComStringRead( second, 2);
     pcSerialComStringWrite("\r\n");
-    
+
     pcSerialComStringWrite("Date and time has been set\r\n");
 
-    dateAndTimeWrite( atoi(year), atoi(month), atoi(day), 
-        atoi(hour), atoi(minute), atoi(second) );
+    dateAndTimeWrite( atoi(year), atoi(month), atoi(day),
+                      atoi(hour), atoi(minute), atoi(second) );
 }
 
 static void commandShowDateAndTime()
@@ -304,7 +318,7 @@ static void commandShowStoredEvents()
     int i;
     for (i = 0; i < eventLogNumberOfStoredEvents(); i++) {
         eventLogRead( i, str );
-        pcSerialComStringWrite( str );   
-        pcSerialComStringWrite( "\r\n" );                    
+        pcSerialComStringWrite( str );
+        pcSerialComStringWrite( "\r\n" );
     }
 }

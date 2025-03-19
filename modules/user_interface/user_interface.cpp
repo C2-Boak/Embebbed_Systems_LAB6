@@ -148,9 +148,7 @@ static void userInterfaceDisplayUpdate()
     static int accumulatedDisplayTime = 0;
     char temperatureString[3] = "";
     char GasString[4] = "";
-    if( accumulatedDisplayTime >=
-        DISPLAY_REFRESH_TIME_MS ) {
-
+    if( accumulatedDisplayTime >= DISPLAY_REFRESH_TIME_MS ) {
         accumulatedDisplayTime = 0;
 
         sprintf(temperatureString, "%.0f", temperatureSensorReadCelsius());
@@ -176,8 +174,7 @@ static void userInterfaceDisplayUpdate()
         }
 
     } else {
-        accumulatedDisplayTime =
-                accumulatedDisplayTime + SYSTEM_TIME_INCREMENT_MS;
+        accumulatedDisplayTime = accumulatedDisplayTime + SYSTEM_TIME_INCREMENT_MS;
     }
 }
 
