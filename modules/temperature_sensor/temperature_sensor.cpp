@@ -5,16 +5,20 @@
 #include "temperature_sensor.h"
 
 #include "smart_home_system.h"
+#include "gas_sensor.h"
+
 
 //=====[Declaration of private defines]========================================
 
 #define LM35_NUMBER_OF_AVG_SAMPLES    10
+
 
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
 
 AnalogIn lm35(A1);
+
 
 //=====[Declaration of external public global variables]=======================
 
@@ -24,6 +28,7 @@ AnalogIn lm35(A1);
 
 float lm35TemperatureC = 0.0;
 float lm35ReadingsArray[LM35_NUMBER_OF_AVG_SAMPLES];
+bool Temp_Range();
 
 //=====[Declarations (prototypes) of private functions]========================
 
@@ -34,7 +39,7 @@ static float analogReadingScaledWithTheLM35Formula( float analogReading );
 void temperatureSensorInit()
 {
     int i;
-    
+
     for( i=0; i<LM35_NUMBER_OF_AVG_SAMPLES ; i++ ) {
         lm35ReadingsArray[i] = 0;
     }
@@ -47,19 +52,21 @@ void temperatureSensorUpdate()
     float lm35ReadingsAverage = 0.0;
 
     int i = 0;
-
+    if (gasDetectedRead()) {
+        return;
+    }
     lm35ReadingsArray[lm35SampleIndex] = lm35.read();
-       lm35SampleIndex++;
+    lm35SampleIndex++;
     if ( lm35SampleIndex >= LM35_NUMBER_OF_AVG_SAMPLES) {
         lm35SampleIndex = 0;
     }
-    
-   lm35ReadingsSum = 0.0;
+
+    lm35ReadingsSum = 0.0;
     for (i = 0; i < LM35_NUMBER_OF_AVG_SAMPLES; i++) {
         lm35ReadingsSum = lm35ReadingsSum + lm35ReadingsArray[i];
     }
     lm35ReadingsAverage = lm35ReadingsSum / LM35_NUMBER_OF_AVG_SAMPLES;
-       lm35TemperatureC = analogReadingScaledWithTheLM35Formula ( lm35ReadingsAverage );    
+    lm35TemperatureC = analogReadingScaledWithTheLM35Formula ( lm35ReadingsAverage );
 }
 
 
@@ -83,4 +90,12 @@ float celsiusToFahrenheit( float tempInCelsiusDegrees )
 static float analogReadingScaledWithTheLM35Formula( float analogReading )
 {
     return ( analogReading * 3.3 / 0.01 );
+}
+bool Temp_Range(){
+    if ( temperatureSensorReadCelsius()> 50){
+        return 1;
+    }else{
+        return 0;
+    }
+
 }

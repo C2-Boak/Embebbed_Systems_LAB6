@@ -122,10 +122,12 @@ void userInterfaceCodeCompleteWrite( bool state )
 void alarmActivation(){
 
     GasAlarmTrigger = gasDetectedRead();
-    TempAlarmTrigger = overTemperatureDetectedRead();
+    TempAlarmTrigger = Temp_Range();
 
     if (GasAlarmTrigger || TempAlarmTrigger) {
         AlarmTriggerAlert();
+
+
     }
 }
 
@@ -298,43 +300,59 @@ static void userInterfaceDisplayUpdate()
 
 static void AlarmTriggerAlert() {
 
-    if (GasAlarmTrigger || TempAlarmTrigger) {
-        if (alarmAlertTimer.read() == 0.0) {
-            alarmAlertTimer.start();
-        }
+    int i;
 
+    for (i = 0; i <10; i++) {
 
-        if (alarmAlertTimer.read() > 1.0) {
-            static bool toggle = false;
-
-
-            displayCharPositionWrite(0, 3);
-            displayStringWrite("                    ");
-
-
-            if (toggle) {
-
-                displayCharPositionWrite(0, 3);
-                displayStringWrite("Enter code to reset!");
-            } else {
-
-                if (GasAlarmTrigger) {
-                    displayCharPositionWrite(0, 3);
-                    displayStringWrite("Gas alarm trigger!");
-                } else if (TempAlarmTrigger) {
-                    displayCharPositionWrite(0, 3);
-                    displayStringWrite("Temp alarm trigger!");
-                }
+        if (GasAlarmTrigger || TempAlarmTrigger) {
+            if (alarmAlertTimer.read() == 0.0) {
+                alarmAlertTimer.start();
             }
 
 
-            toggle = !toggle;
+            if (alarmAlertTimer.read() > 1.0) {
+                static bool toggle = false;
 
 
-            alarmAlertTimer.reset();
+                displayCharPositionWrite(0, 3);
+                displayStringWrite("                    ");
+
+
+                if (toggle) {
+
+                    displayCharPositionWrite(0, 3);
+                    displayStringWrite("Enter code to reset!");
+                } else {
+
+                    if (GasAlarmTrigger) {
+                        displayCharPositionWrite(0, 3);
+                        displayStringWrite("Gas alarm trigger!");
+                    }
+                    if (TempAlarmTrigger) {
+                        displayCharPositionWrite(0, 3);
+                        displayStringWrite("Temp alarm trigger!");
+                    }
+                }
+
+                toggle = !toggle;
+                delay(1000);
+
+                alarmAlertTimer.reset();
+
+
+            }
         }
     }
+
+
+    if (!GasAlarmTrigger || !TempAlarmTrigger){
+        displayCharPositionWrite(0, 3);
+        displayStringWrite("                    ");
+    }
 }
+
+
+
 static void incorrectCodeIndicatorUpdate()
 
 {

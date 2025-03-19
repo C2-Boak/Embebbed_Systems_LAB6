@@ -14,6 +14,7 @@ void temperatureSensorUpdate();
 float temperatureSensorReadCelsius();
 float temperatureSensorReadFahrenheit();
 float celsiusToFahrenheit( float tempInCelsiusDegrees );
+bool Temp_Range();
 
 //=====[#include guards - end]=================================================
 
