@@ -20,7 +20,7 @@
 #define STROBE_TIME_GAS               1000
 #define STROBE_TIME_OVER_TEMP          500
 #define STROBE_TIME_GAS_AND_OVER_TEMP  100
-#define Dangerous_Gas_Level                    1000
+
 
 //=====[Declaration of private data types]=====================================
 
@@ -51,7 +51,6 @@ static int fireAlarmStrobeTime();
 void fireAlarmInit()
 {
     temperatureSensorInit();
-    gasSensorInit();
     sirenInit();
     strobeLightInit();
 
@@ -68,22 +67,13 @@ void fireAlarmUpdate()
 }
 
 
-void GasSen0127State(float Gas_Level){
-
-
-    if( Gas_Level > Dangerous_Gas_Level ) {
-        gasDetectorState = ON;
-    }
-}
-
-
 
 bool overTemperatureDetectorStateRead()
 {
     return overTemperatureDetectorState;
 }
 
-bool gasDetectedState()
+bool gasDetectedReadV1()
 {
     return gasDetected;
 }
@@ -98,7 +88,7 @@ bool overTemperatureDetectedRead()
 static void fireAlarmActivationUpdate()
 {
     temperatureSensorUpdate();
-    gasSensorUpdate();
+    GasSenRead();
 
     overTemperatureDetectorState = temperatureSensorReadCelsius() >
                                    TEMPERATURE_C_LIMIT_ALARM;
@@ -111,10 +101,11 @@ static void fireAlarmActivationUpdate()
 
 
 
-    if ( gasDetectorState ) {
+    if (gasDetectedRead()) {
         gasDetected = ON;
         sirenStateWrite(ON);
         strobeLightStateWrite(ON);
+
     }
 
     if( alarmTestButton ) {
@@ -145,7 +136,7 @@ static void fireAlarmDeactivate()
 
 static int fireAlarmStrobeTime()
 {
-    if( gasDetectedState () && overTemperatureDetectedRead() ) {
+    if( gasDetectedRead () && overTemperatureDetectedRead() ) {
         return STROBE_TIME_GAS_AND_OVER_TEMP;
     } else if ( gasDetectorState) {
         return STROBE_TIME_GAS;

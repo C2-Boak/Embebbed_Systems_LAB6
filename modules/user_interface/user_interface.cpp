@@ -161,17 +161,11 @@ static void userInterfaceDisplayUpdate()
 
         sprintf(GasString, "%.0f", GasSenRead());
         displayCharPositionWrite ( 4,1 );
-        displayStringWrite( temperatureString );
+        displayStringWrite(GasString);
         displayCharPositionWrite ( 8,1 );
         displayStringWrite( "PPM" );
 
-        //displayCharPositionWrite ( 4,1 );
 
-        //if ( gasDetectorStateRead() ) {
-        //displayStringWrite( "Detected    " );
-        //} else {
-        //displayStringWrite( "Not Detected" );
-        // }
 
         displayCharPositionWrite ( 6,2 );
 
