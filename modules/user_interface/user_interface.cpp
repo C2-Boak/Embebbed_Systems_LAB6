@@ -3,6 +3,7 @@
 #include "mbed.h"
 #include "arm_book_lib.h"
 
+
 #include "user_interface.h"
 
 #include "code.h"
@@ -50,9 +51,11 @@ static bool display_GOK = OFF;
 static bool GasAlarmTrigger;
 static bool TempAlarmTrigger;
 static bool flashMessageOn = false;
+static bool CodeEntry = false;
 
 static bool codeComplete = false;
 static int numberOfCodeChars = 0;
+static Timer alarmAlertTimer;
 
 //=====[Declarations (prototypes) of private functions]========================
 
@@ -63,6 +66,7 @@ static void systemBlockedIndicatorUpdate();
 static void userInterfaceDisplayInit();
 static void userInterfaceDisplayUpdate();
 static void alarmActivation();
+static void AlarmTriggerAlert();
 
 
 //=====[Implementations of public functions]===================================
@@ -120,11 +124,16 @@ void alarmActivation(){
     GasAlarmTrigger = gasDetectedRead();
     TempAlarmTrigger = overTemperatureDetectedRead();
 
+    if (GasAlarmTrigger || TempAlarmTrigger) {
+        AlarmTriggerAlert();
+    }
 }
+
 //=====[Implementations of private functions]==================================
 
 static void userInterfaceMatrixKeypadUpdate()
 {
+
     static int numberOfHashKeyReleased = 0;
     char keyReleased = matrixKeypadUpdate();
 
@@ -165,7 +174,7 @@ static void userInterfaceMatrixKeypadUpdate()
                 }
             }
 
-            // Activate the message for 5 seconds when key 2 or 3 is pressed
+
             if (keyReleased == '2' && GasAlarmTrigger){
                 displayGasState = true;
                 displayTempState = false;
@@ -208,29 +217,33 @@ static void userInterfaceDisplayUpdate()
     char stateString[27] = "";
 
     if (accumulatedDisplayTime >= DISPLAY_REFRESH_TIME_MS) {
+
         accumulatedDisplayTime = 0;
 
-        // Update temperature display
+        alarmActivation();
+
+
         sprintf(temperatureString, "%.0f", temperatureSensorReadCelsius());
         displayCharPositionWrite(12, 0);
         displayStringWrite(temperatureString);
         displayCharPositionWrite(14, 0);
         displayStringWrite("'C");
 
-        // Update gas level display
+
         sprintf(gasString, "%.0f", GasSenRead());
         displayCharPositionWrite(4, 1);
         displayStringWrite(gasString);
         displayCharPositionWrite(8, 1);
         displayStringWrite("PPM");
 
-        // Update alarm status
+
         displayCharPositionWrite(6, 2);
         if (sirenStateRead()) {
             displayStringWrite("ON ");
         } else {
             displayStringWrite("OFF");
         }
+
 
         if (flashMessageOn) {
             if (flashTimer.read_ms() < Message_Duration_MS) {
@@ -254,19 +267,18 @@ static void userInterfaceDisplayUpdate()
                         displayCharPositionWrite(0, 3);
                         displayStringWrite(stateString);
                     } else {
-                        // Clear the message
+
                         displayCharPositionWrite(0, 3);
                         displayStringWrite("                    ");
                     }
                 } else {
-                    // Stop displaying after 5 seconds
+
                     display_GOK = false;
                     display_TOK = false;
                     displayGasState = false;
                     displayTempState = false;
                     flashMessageOn = false;
 
-                    // Clear the message completely
                     displayCharPositionWrite(0, 3);
                     displayStringWrite("                   ");
                 }
@@ -280,7 +292,51 @@ static void userInterfaceDisplayUpdate()
         accumulatedDisplayTime += SYSTEM_TIME_INCREMENT_MS;
     }
 }
+
+
+
+
+static void AlarmTriggerAlert() {
+
+    if (GasAlarmTrigger || TempAlarmTrigger) {
+        if (alarmAlertTimer.read() == 0.0) {
+            alarmAlertTimer.start();
+        }
+
+
+        if (alarmAlertTimer.read() > 1.0) {
+            static bool toggle = false;
+
+
+            displayCharPositionWrite(0, 3);
+            displayStringWrite("                    ");
+
+
+            if (toggle) {
+
+                displayCharPositionWrite(0, 3);
+                displayStringWrite("Enter code to reset!");
+            } else {
+
+                if (GasAlarmTrigger) {
+                    displayCharPositionWrite(0, 3);
+                    displayStringWrite("Gas alarm trigger!");
+                } else if (TempAlarmTrigger) {
+                    displayCharPositionWrite(0, 3);
+                    displayStringWrite("Temp alarm trigger!");
+                }
+            }
+
+
+            toggle = !toggle;
+
+
+            alarmAlertTimer.reset();
+        }
+    }
+}
 static void incorrectCodeIndicatorUpdate()
+
 {
     incorrectCodeLed = incorrectCodeStateRead();
 }
